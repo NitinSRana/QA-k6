@@ -44,3 +44,10 @@ next-env.d.ts
 node_modules/
 .env.local
 .next/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
