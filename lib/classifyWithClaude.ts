@@ -1,10 +1,10 @@
-import Anthropic from "@anthropic-ai/sdk";
+import Groq from "groq-sdk";
 import { TestCase, TestCategory } from "@/types";
 import { RawTestCase } from "./parseTestCases";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-interface ClaudeClassification {
+interface Classification {
   id: string;
   category: TestCategory;
   k6Ready: boolean;
@@ -50,18 +50,18 @@ Expected Result: ${tc.expectedResult}`
   )
   .join("\n\n")}`;
 
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 4096,
+  const completion = await client.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
     messages: [{ role: "user", content: prompt }],
+    temperature: 0.1,
+    max_tokens: 4096,
   });
 
-  const text =
-    message.content[0].type === "text" ? message.content[0].text : "";
+  const text = completion.choices[0]?.message?.content ?? "";
 
   // Strip any accidental markdown fences
   const jsonText = text.replace(/```(?:json)?/g, "").trim();
-  const classifications: ClaudeClassification[] = JSON.parse(jsonText);
+  const classifications: Classification[] = JSON.parse(jsonText);
 
   return classifications.map((c, i) => ({
     id: c.id ?? `TC-${String(i + 1).padStart(3, "0")}`,
