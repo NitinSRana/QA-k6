@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import InputPanel from "@/components/InputPanel";
 import ClassificationPanel from "@/components/ClassificationPanel";
 import ExportPanel from "@/components/ExportPanel";
+import DriveConnectPanel from "@/components/DriveConnectPanel";
 import { TestCase, TestCategory } from "@/types";
 import { RawTestCase } from "@/lib/parseTestCases";
 
@@ -59,42 +60,52 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              <svg
+                className="w-4 h-4 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
               </svg>
             </div>
             <div>
-              <h1 className="text-sm font-bold text-gray-900">QA Test Case Hub</h1>
+              <h1 className="text-sm font-bold text-gray-900">
+                QA Test Case Hub
+              </h1>
               <p className="text-xs text-gray-500">Classify &amp; export for k6</p>
             </div>
           </div>
 
+          {/* Drive connection status pill in header */}
           <div className="flex items-center gap-2">
             {session ? (
-              <>
-                <span className="text-xs text-gray-600 hidden sm:block">
-                  {session.user?.email}
+              <div className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                Drive connected
+                <span className="text-green-500 hidden sm:inline">
+                  · {session.user?.email}
                 </span>
-                <button
-                  onClick={() => signOut()}
-                  className="text-xs text-gray-500 hover:text-gray-800 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Sign out
-                </button>
-              </>
+              </div>
             ) : (
-              <button
-                onClick={() => signIn("google")}
-                className="text-xs text-indigo-600 font-medium px-3 py-1.5 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition-colors"
-              >
-                Sign in with Google
-              </button>
+              <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-300 inline-block" />
+                Drive not connected
+              </div>
             )}
           </div>
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+        {/* Google Drive connection — always visible */}
+        <DriveConnectPanel />
+
         {/* Step indicator */}
         <div className="flex items-center gap-2 text-xs text-gray-500">
           {(["input", "review"] as const).map((s, i) => (
@@ -115,12 +126,14 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Classifying overlay card */}
+        {/* Classifying spinner */}
         {step === "classifying" && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 flex flex-col items-center justify-center gap-4">
             <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
             <div className="text-center">
-              <p className="font-medium text-gray-800">Classifying with Claude…</p>
+              <p className="font-medium text-gray-800">
+                Classifying with Claude…
+              </p>
               <p className="text-sm text-gray-500 mt-1">
                 Analysing and categorising your test cases
               </p>
@@ -149,13 +162,17 @@ export default function Home() {
           <>
             <div className="flex items-center justify-between">
               <button
-                onClick={() => { setStep("input"); setTestCases([]); }}
+                onClick={() => {
+                  setStep("input");
+                  setTestCases([]);
+                }}
                 className="text-xs text-gray-500 hover:text-gray-800 flex items-center gap-1"
               >
                 ← Start over
               </button>
               <span className="text-xs text-gray-500">
-                {testCases.length} test case{testCases.length !== 1 ? "s" : ""} classified
+                {testCases.length} test case
+                {testCases.length !== 1 ? "s" : ""} classified
               </span>
             </div>
 
@@ -167,8 +184,7 @@ export default function Home() {
             <ExportPanel
               testCases={testCases}
               source={source}
-              isSignedIn={!!session}
-              onSignIn={() => signIn("google")}
+              isConnected={!!session}
             />
           </>
         )}
